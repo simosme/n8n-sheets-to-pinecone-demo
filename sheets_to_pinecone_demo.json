@@ -1,0 +1,213 @@
+{
+  "name": "sheets to pinecone demo",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "xyz",
+          "mode": "list",
+          "cachedResultName": "Simo content",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/xyz/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "All",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/xyz/edit#gid=0"
+        },
+        "event": "rowAdded",
+        "options": {
+          "dataLocationOnSheet": {
+            "values": {
+              "rangeDefinition": "specifyRange"
+            }
+          }
+        }
+      },
+      "id": "b43d886a-6d42-4794-ac72-cb4655b3e18f",
+      "name": "Google Sheets Trigger",
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        840,
+        260
+      ],
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "xyz",
+          "name": "Google Sheets Trigger account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "text-embedding-3-small",
+        "options": {
+          "stripNewLines": true
+        }
+      },
+      "id": "3adf7cb9-9294-4e38-bdfc-8df6982a4fa3",
+      "name": "Embeddings OpenAI",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1,
+      "position": [
+        1160,
+        500
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "xyz",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.Content }}",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "url",
+                "value": "={{ $('Google Sheets Trigger').item.json.URL }}"
+              },
+              {
+                "name": "title",
+                "value": "={{ $('Google Sheets Trigger').item.json.Title }}"
+              },
+              {
+                "name": "id",
+                "value": "={{ $('Google Sheets Trigger').item.json.ID }}"
+              }
+            ]
+          }
+        }
+      },
+      "id": "4d816730-b09b-47a0-95b2-d63c99702b6c",
+      "name": "Default Data Loader",
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1,
+      "position": [
+        1380,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "chunkSize": 3000,
+        "chunkOverlap": 10,
+        "options": {
+          "splitCode": "markdown"
+        }
+      },
+      "id": "3e8c67cc-aefd-4654-a581-6dd37241f9a4",
+      "name": "Recursive Character Text Splitter",
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        1480,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "demo-n8n",
+          "mode": "list",
+          "cachedResultName": "demo-n8n"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1,
+      "position": [
+        1180,
+        260
+      ],
+      "id": "68d254fe-0ffb-47c9-b65b-d61794a1fdb3",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "xyz",
+          "name": "Pinecone Demo"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets Trigger": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f4a9cebe-09e9-4685-85d3-5b91ece3a1a4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a73ce21d2169be94a88350ddd932806c0a102b37c45a85736838f46903436f51"
+  },
+  "id": "ZA4iRkNifm8AlGyb",
+  "tags": [
+    {
+      "createdAt": "2024-12-10T13:21:50.049Z",
+      "updatedAt": "2024-12-10T13:21:50.049Z",
+      "id": "izKuOO5Qok0W940m",
+      "name": "template"
+    }
+  ]
+}
